@@ -1,10 +1,13 @@
-# CENG 467 — Advanced RAG with Hard Negative Mining
+# Advanced RAG with Hard Negative Mining
 
-Term project for CENG 467 Natural Language Understanding and Generation.
+An end-to-end Retrieval-Augmented Generation pipeline that fine-tunes a Dense
+Passage Retriever with **BM25-mined hard negatives** and answers multi-hop
+questions over HotpotQA. Hard-negative mining lifts Recall@1 to **0.844** and
+end-to-end QA to **0.583 token-F1**, beating both BM25 and vanilla DPR baselines.
 
-İzmir Institute of Technology, Spring 2026.
+**Stack:** PyTorch · HuggingFace Transformers · FAISS · DPR · Flan-T5-xl · HotpotQA
 
-**Group:** Erman Akıncı · Ahmet Yılmaz · Kaan Cesur
+📄 **[Read the full report (PDF)](report.pdf)** — 7-page write-up: method, ablations, significance testing, and per-category analysis.
 
 ---
 
@@ -24,7 +27,7 @@ This project implements an Advanced Retrieval-Augmented Generation (RAG) pipelin
 ## Repository Structure
 
 ```
-CENG467_Term_Project/
+advanced-rag-hard-negative-mining/
 ├── src/
 │   ├── load_dataset.py          # HotpotQA loading utility
 │   ├── baseline_bm25.py         # BM25 retrieval baseline (per-question pool)
@@ -51,12 +54,15 @@ CENG467_Term_Project/
 ## Setup
 
 ```bash
-git clone https://github.com/ahmet-yilmaz-cs/CENG467_Term_Project.git
-cd CENG467_Term_Project
+git clone https://github.com/ermanaknc/advanced-rag-hard-negative-mining.git
+cd advanced-rag-hard-negative-mining
 pip install -r requirements.txt
 ```
 
-> **Note:** Fine-tuned model weights are not included in the repository due to size (each epoch checkpoint is ~870 MB). Either train from scratch (see steps below) or download from the shared Google Drive link and place under `models/`.
+> **Note:** Trained models and mined data are excluded from the repository due to size. Either regenerate them with the steps below, or download the pretrained artifacts from the shared Google Drive folder:
+>
+> 📁 **[Models, data & results (Google Drive)](https://drive.google.com/drive/folders/1hRsdR7WJ34R2pL9tqo8YF1IZaYoUBOM4?usp=sharing)**
+
 
 Expected model structure after training (one directory per epoch):
 ```
@@ -218,6 +224,19 @@ fine-tuning.
 - Loaded via HuggingFace `datasets` library
 - Training: `train` split (hard negative mining)
 - Evaluation: `validation` split (500 examples)
+
+---
+
+## Team & Contributions
+
+3-person team project — Erman Akıncı, Ahmet Yılmaz, Kaan Cesur.
+
+**Erman Akıncı**
+- DPR fine-tuning: contrastive training on BM25-mined hard negatives,
+  recall-based checkpoint selection, resume support.
+- BM25 retrieval baseline; results reporting and literature review in the
+  progress report.
+- Contributed to hard-negative mining and the Flan-T5 reader.
 
 ---
 

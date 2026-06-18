@@ -13,8 +13,8 @@ def tokenize(text):
 
 def build_corpus(example):
     """
-    HotpotQA distractor setting: her soru için 10 paragraf var (2 gold + 8 distractor).
-    Bunları birleştirip BM25 corpus'u oluşturuyoruz.
+    HotpotQA distractor setting: each question has 10 paragraphs (2 gold + 8 distractor).
+    We merge them into a single BM25 corpus.
     """
     titles = example["context"]["title"]
     sentences_list = example["context"]["sentences"]
@@ -66,18 +66,18 @@ def run_bm25_baseline(max_samples=500, top_k=5):
         answer = ex["answer"]
         passages = build_corpus(ex)
 
-        # Altın (gold) başlıklar: hangi pasajların doğru olduğu
+        # Gold titles: which passages are the correct ones
         gold_titles = set(ex["supporting_facts"]["title"])
 
-        # BM25 ile top-k pasaj al
+        # Retrieve top-k passages with BM25
         top_indices = retrieve_bm25(question, passages, top_k=top_k)
         retrieved_titles = {passages[i]["title"] for i in top_indices}
 
-        # Recall@K: gold pasajlardan en az biri alındı mı?
+        # Recall@K: was at least one gold passage retrieved?
         hit = int(bool(gold_titles & retrieved_titles))
         recall_at_k += hit
 
-        # Cevap tahmini: en iyi pasajın ilk cümlesi (basit yaklaşım)
+        # Answer prediction: first sentence of the best passage (simple heuristic)
         best_passage_text = passages[top_indices[0]]["text"]
         predicted_answer = best_passage_text.split(".")[0]
 

@@ -12,7 +12,7 @@ def tokenize(text):
 
 
 def build_corpus(example):
-    """Her soru için 10 pasajı title + text olarak döner."""
+    """Returns the 10 passages for each question as title + text."""
     passages = []
     for title, sentences in zip(
         example["context"]["title"],
@@ -26,20 +26,20 @@ def build_corpus(example):
 
 
 def get_gold_titles(example):
-    """Sorunun cevabını destekleyen gold pasaj başlıklarını döner."""
+    """Returns the gold passage titles that support the question's answer."""
     return set(example["supporting_facts"]["title"])
 
 
 def mine_hard_negatives(example, num_hard_negatives=5):
     """
-    Bir soru için hard negative mining yapar.
+    Performs hard negative mining for a single question.
 
-    Dönen yapı:
+    Returned structure:
     {
         "question": ...,
         "answer": ...,
-        "positive_passages": [...],   # gold pasajlar
-        "hard_negatives": [...]        # yüksek BM25 skoru ama gold değil
+        "positive_passages": [...],   # gold passages
+        "hard_negatives": [...]        # high BM25 score but not gold
     }
     """
     question    = example["question"]
@@ -47,12 +47,12 @@ def mine_hard_negatives(example, num_hard_negatives=5):
     passages    = build_corpus(example)
     gold_titles = get_gold_titles(example)
 
-    # BM25 ile tüm pasajları sırala
+    # Rank all passages with BM25
     corpus_tokens = [tokenize(p["text"]) for p in passages]
     bm25          = BM25Okapi(corpus_tokens)
     scores        = bm25.get_scores(tokenize(question))
 
-    # Pasajları skora göre sırala
+    # Sort passages by score
     ranked = sorted(
         enumerate(passages),
         key=lambda x: scores[x[0]],
@@ -66,11 +66,11 @@ def mine_hard_negatives(example, num_hard_negatives=5):
         if passage["title"] in gold_titles:
             positive_passages.append(passage)
         else:
-            # Gold olmayan ama yüksek skor → hard negative
+            # Not gold but high score -> hard negative
             if len(hard_negatives) < num_hard_negatives:
                 hard_negatives.append({**passage, "bm25_score": round(float(scores[idx]), 4)})
 
-    # Gold pasaj hiç bulunamadıysa bu örneği atla
+    # Skip this example if no gold passage was found
     if not positive_passages:
         return None
 
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     run_mining(
         max_samples=30000,
         num_hard_negatives=5,
-        output_path="/content/drive/MyDrive/CENG467/hard_negatives_train_30k.json",
+        output_path="data/hard_negatives_train.json",
         val_ratio=0.2,
-        val_output_path="/content/drive/MyDrive/CENG467/hard_negatives_val_30k.json",
+        val_output_path="data/hard_negatives_val.json",
     )
